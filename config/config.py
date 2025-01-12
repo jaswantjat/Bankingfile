@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 from typing import Dict, Optional
 import os
 from dotenv import load_dotenv
+from pydantic import validator
 
 load_dotenv()
 
@@ -16,8 +17,8 @@ class Settings(BaseSettings):
     UNIONBANK_URL: str
     
     # Google API
-    GMAIL_API_KEY: dict
-    DRIVE_API_KEY: dict
+    GMAIL_API_KEY: str
+    DRIVE_API_KEY: str
     
     # Slack
     SLACK_API_KEY: str
@@ -35,16 +36,19 @@ class Settings(BaseSettings):
     API_RATE_LIMIT: int = 100
     RETRY_MAX_ATTEMPTS: int = 3
     RETRY_INITIAL_DELAY: int = 1
+
+    @validator('GMAIL_API_KEY', 'DRIVE_API_KEY')
+    def validate_json_credentials(cls, v):
+        try:
+            if isinstance(v, str):
+                return json.loads(v)
+            return v
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in credentials: {str(e)}")
     
     class Config:
         case_sensitive = True
         env_file = ".env"
         env_file_encoding = "utf-8"
-        
-        @classmethod
-        def parse_env_var(cls, field_name: str, raw_val: str):
-            if field_name in ["GMAIL_API_KEY", "DRIVE_API_KEY"]:
-                return json.loads(raw_val)
-            return raw_val
 
 settings = Settings()

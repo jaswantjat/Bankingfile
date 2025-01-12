@@ -3,6 +3,7 @@ from typing import Optional, Dict
 from loguru import logger
 import json
 import os
+import json
 
 class PortalScraper:
     def __init__(self):
